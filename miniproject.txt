@@ -1,0 +1,49 @@
+https://pypi.org/project/SpeechRecognition/
+https://pypi.org/project/googletrans/
+
+import speech_recognition as sr
+from googletrans import Translator
+import pyttsx3
+import IPython.display as ipd
+from gtts import gTTS
+
+recognizer = sr.Recognizer()
+translator = Translator()
+tts_engine = pyttsx3.init()
+
+def set_male_voice():
+    voices = tts_engine.getProperty('voices')
+    for voice in voices:
+        if 'male' in voice.name.lower():
+            tts_engine.setProperty('voice', voice.id)
+            break
+
+def record_and_translate():
+    with sr.Microphone() as source:
+        print("Say something...")
+        audio = recognizer.listen(source)
+        print("Processing...")
+    
+    try:
+        text = recognizer.recognize_google(audio)
+        print("You said: " + text)
+    except sr.UnknownValueError:
+        print("Google Speech Recognition could not understand the audio")
+        return
+    except sr.RequestError as e:
+        print(f"Could not request results; {e}")
+        return
+
+    translated_text = translator.translate(text, dest='kn').text
+    print("Translated text: " + translated_text)
+
+    tts = gTTS(text=translated_text, lang='kn')
+    tts.save("translated.mp3")
+
+    ipd.display(ipd.Audio("translated.mp3"))
+
+    set_male_voice()
+    tts_engine.say(translated_text)
+    tts_engine.runAndWait()
+
+record_and_translate()
